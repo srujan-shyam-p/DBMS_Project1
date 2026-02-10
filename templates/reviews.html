@@ -1,0 +1,33 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}My Reviews{% endblock %}
+
+{% block content %}
+<h2 class="section-title">My Reviews</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Course</th>
+            <th>Rating</th>
+            <th>Comments</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in reviews %}
+        <tr>
+            <td>{{ r.course_name }}</td>
+            <td>
+                {% for i in range(r.rating) %}⭐{% endfor %}
+                ({{ r.rating }}/5)
+            </td>
+            <td>{{ r.comments }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3">You verify haven't written any reviews yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

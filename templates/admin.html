@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+</head>
+<body>
+
+<h2>Administrator Panel</h2>
+
+<form method="POST">
+    <label for="user_id">User ID:</label><br>
+    <input type="number" id="user_id" name="user_id"><br><br>
+
+    <label for="role">Assign Role:</label><br>
+    <select id="role" name="role">
+        <option value="student">Student</option>
+        <option value="instructor">Instructor</option>
+        <option value="analyst">Analyst</option>
+    </select><br><br>
+
+    <button type="submit">Update Role</button>
+</form>
+
+</body>
+</html>
