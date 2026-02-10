@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Analytics Dashboard</h2>
+
+<div class="stats-grid" id="kpiContainer">
+    <div class="stat-card">
+        <span class="stat-number" id="totalUsers">-</span>
+        Total Users
+    </div>
+    <div class="stat-card">
+        <span class="stat-number" id="totalCourses">-</span>
+        Active Courses
+    </div>
+    <div class="stat-card">
+        <span class="stat-number" id="totalEnrollments">-</span>
+        Total Enrollments
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <h3>Enrollments by Category</h3>
+        <canvas id="categoryChart"></canvas>
+    </div>
+    <div class="card">
+        <h3>User Role Distribution</h3>
+        <canvas id="roleChart"></canvas>
+    </div>
+</div>
+
+<script>
+    // Fetch data from Flask API
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            // Update KPIs
+            document.getElementById('totalUsers').innerText = data.totals.users;
+            document.getElementById('totalCourses').innerText = data.totals.courses;
+            document.getElementById('totalEnrollments').innerText = data.totals.enrollments;
+
+            // Render Category Chart
+            new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.categories.map(c => c.category),
+                    datasets: [{
+                        data: data.categories.map(c => c.count),
+                        backgroundColor: ['#008080', '#20B2AA', '#48D1CC', '#2D3E50']
+                    }]
+                }
+            });
+
+            // Render Role Chart
+            new Chart(document.getElementById('roleChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.roles.map(r => r.role),
+                    datasets: [{
+                        label: 'Users',
+                        data: data.roles.map(r => r.count),
+                        backgroundColor: '#2D3E50'
+                    }]
+                }
+            });
+        });
+</script>
+{% endblock %}
