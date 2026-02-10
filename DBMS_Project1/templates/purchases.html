@@ -1,0 +1,35 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Purchase History{% endblock %}
+
+{% block content %}
+<h2 class="section-title">Purchase History</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Invoice No</th>
+            <th>Transaction ID</th>
+            <th>Amount</th>
+            <th>Mode</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in purchases %}
+        <tr>
+            <td>{{ p.date_pay }}</td>
+            <td>{{ p.invoice_no }}</td>
+            <td><code style="background: #f3f4f6; padding: 2px 4px; border-radius: 4px;">{{ p.transaction_id }}</code>
+            </td>
+            <td style="font-weight: bold;">{{ p.currency }} {{ p.amount }}</td>
+            <td>{{ p.payment_mode }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5">No purchase history found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

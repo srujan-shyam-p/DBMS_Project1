@@ -1,0 +1,54 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="welcome-header">
+    <h1>Welcome back, {{ session['username'] }}!</h1>
+</div>
+
+<div class="stats-container">
+    <div class="stat-box">
+        <h3>{{ stats.enrolled }}</h3>
+        <p>Total Enrolled</p>
+    </div>
+    <div class="stat-box">
+        <h3>{{ stats.active }}</h3>
+        <p>In Progress</p>
+    </div>
+    <div class="stat-box">
+        <h3>{{ stats.completed }}</h3>
+        <p>Completed</p>
+    </div>
+</div>
+
+<h2>My Enrolled Courses</h2>
+<table class="styled-table">
+    <thead>
+        <tr>
+            <th>Course Title</th>
+            <th>Category</th>
+            <th>Progress</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enr in enrollments %}
+        <tr>
+            <td><strong>{{ enr.title }}</strong></td>
+            <td>{{ enr.category }}</td>
+            <td>
+                <div class="progress-wrapper">
+                    <div class="progress-fill" style="width: {{ enr.percent_completed }}%"></div>
+                </div>
+                {{ enr.percent_completed }}%
+            </td>
+            <td><span class="badge {{ enr.completion_status }}">{{ enr.completion_status }}</span></td>
+            <td>
+                <a href="{{ url_for('view_course', course_id=enr.id) }}" class="btn-view">View Course</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

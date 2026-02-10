@@ -1,0 +1,198 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>Administration Panel</h1>
+    <p class="text-muted">Manage users, courses, and enrollments.</p>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h3>Assign / Re-enroll Student</h3>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('admin_enroll_student') }}" method="POST" class="row-form">
+            <div class="form-group">
+                <label>Select Student:</label>
+                <select name="user_id" required>
+                    <option value="" disabled selected>-- Choose Student --</option>
+                    {% for s in all_students %}
+                    <option value="{{ s.user_id }}">{{ s.name }} (ID: {{ s.user_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Select Course:</label>
+                <select name="course_id" required>
+                    <option value="" disabled selected>-- Choose Course --</option>
+                    {% for c in all_courses %}
+                    <option value="{{ c.course_id }}">{{ c.course_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="btn-success">Enroll Student</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h3>Instructors Directory</h3>
+    </div>
+    <div class="card-body">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Experience</th>
+                    <th>Courses Taught</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inst in instructors %}
+                <tr>
+                    <td>{{ inst.user_id }}</td>
+                    <td><strong>{{ inst.name }}</strong></td>
+                    <td>{{ inst.email }}</td>
+                    <td>{{ inst.experience }} Years</td>
+                    <td>{{ inst.courses_taught or 'No active courses' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+  <!-- analytis -->
+   <div class="card mb-4">
+    <div class="card-header" style="background-color: #6f42c1; color: white;">
+        <h3>Data Analysts Directory</h3>
+    </div>
+    <div class="card-body">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for analyst in analysts %}
+                <tr>
+                    <td>{{ analyst.user_id }}</td>
+                    <td>
+    <a href="{{ url_for('admin_analyst_detail', user_id=analyst.user_id) }}" 
+       style="font-weight: bold; text-decoration: underline; color: #6f42c1;">
+        {{ analyst.name }}
+    </a>
+</td>
+                    <td>{{ analyst.email }}</td>
+                    <td>{{ analyst.phonenumber or 'N/A' }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4">No data analysts found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-success text-white">
+        <h3>Student Enrollments</h3>
+    </div>
+    <div class="card-body">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Enrolled Course</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for st in students %}
+                <tr>
+                    <td>{{ st.user_id }}</td>
+                    <td>
+    <a href="{{ url_for('admin_student_detail', user_id=st.user_id) }}" 
+       style="font-weight: bold; text-decoration: underline; color: #007bff;">
+        {{ st.name }}
+    </a>
+</td>
+                    <td>{{ st.email }}</td>
+                    <td>
+                        {% if st.course_name %}
+                            <strong>{{ st.course_name }}</strong>
+                        {% else %}
+                            <span class="text-muted" style="color: red;">Not Enrolled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if st.enrollment_id %}
+                        <form action="{{ url_for('admin_unenroll_student', enrollment_id=st.enrollment_id) }}" method="POST" onsubmit="return confirm('Remove student from course?');" style="display:inline;">
+                            <button type="submit" class="btn-danger btn-sm">Unenroll</button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted" style="font-size: 0.9em;">(Use form above to enroll)</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">No students found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    /* Additions for the form */
+    .row-form {
+        display: flex;
+        gap: 20px;
+        align-items: flex-end;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .form-group select {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        min-width: 200px;
+    }
+    .btn-success {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        height: 35px;
+    }
+    .btn-success:hover { background-color: #218838; }
+    
+    /* Previous styles... */
+    .card { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; }
+    .card-header { padding: 15px; border-bottom: 1px solid #ddd; }
+    .bg-secondary { background-color: #6c757d; }
+    .bg-primary { background-color: #007bff; }
+    .bg-success { background-color: #28a745; }
+    .text-white { color: white; }
+    .card-body { padding: 20px; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+    .btn-danger { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+</style>
+{% endblock %}
