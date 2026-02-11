@@ -88,30 +88,35 @@
     <div class="register-box">
         <h2>Create Account</h2>
 
-        <form method="POST" action="/register">
-            <label>Username</label>
-            <input type="text" name="username" required placeholder="Enter your username" title="Username">
+        <form action="{{ url_for('register') }}" method="POST">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="name" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label>Nationality</label>
+                <input type="text" name="nationality" required placeholder="e.g. India">
+            </div>
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" name="age" required>
+            </div>
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" name="phonenumber" required>
+            </div>
 
-            <label>Full Name</label>
-            <input type="text" name="full_name" required placeholder="Enter your full name" title="Full Name">
+            <input type="hidden" name="role" value="student">
 
-            <label>Email</label>
-            <input type="email" name="email" required placeholder="Enter your email" title="Email">
-
-            <label>Phone Number</label>
-            <input type="text" name="phone" required placeholder="Enter your phone number" title="Phone Number">
-
-            <label>Password</label>
-            <input type="password" name="password" required placeholder="Enter your password" title="Password">
-
-            <label>Role</label>
-            <select name="role">
-                <option value="student">Student</option>
-                <option value="instructor">Instructor</option>
-                <option value="analyst">Analyst</option>
-            </select>
-
-            <button type="submit" class="btn">Register</button>
+            <button type="submit" class="btn-register">Sign Up as Student</button>
         </form>
 
         <div class="login-link">

@@ -79,29 +79,33 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form.get('full_name') or request.form.get('username')
+        name = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
-        phone = request.form.get('phone')
-        role = request.form.get('role', 'student') 
-        hashed_password = generate_password_hash(password)
-        
-        if db_utils.check_email_exists(db.session, email):
-            flash('Email taken.', 'danger')
-            return redirect(url_for('register'))
-        
-        try:
-            uid = db_utils.create_user(db.session, name, email, hashed_password, phonenumber=phone)
-            db_utils.assign_role(db.session, uid, role)
-            db.session.commit()
-            flash('Registered! Please log in.', 'success')
-            return redirect(url_for('login'))
-        except Exception as e:
-            db.session.rollback()
-            flash('Error registering.', 'danger')
-            
-    return render_template('register.html')
+        nationality = request.form.get('nationality') # New field
+        age = request.form.get('age')
+        phonenumber = request.form.get('phonenumber')
+        role = 'student' # Enforce student role
 
+        # 1. Create entry in parent 'users' table
+        new_user = db_utils.create_user(
+            db.session, 
+            name=name, 
+            email=email, 
+            password=password, 
+            nationality=nationality, 
+            age=age, 
+            phonenumber=phonenumber
+        )
+        
+        # 2. Automatically link to 'student' child table
+        db_utils.create_student_profile(db.session, user_id=new_user.user_id)
+        
+        db.session.commit()
+        flash('Registration successful! Please login.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
 @app.route('/logout')
 def logout():
     session.clear()
