@@ -147,74 +147,84 @@ CREATE TABLE teaches (
     FOREIGN KEY (course_id) REFERENCES courses(course_id)
 );
 
--- =============================================
--- 3. INSERT MOCK DATA
--- =============================================
 
 -- A. UNIVERSITY
 INSERT INTO partner_university (university_id, university_name, accredation_details)
 VALUES (1, 'OpenTech University', 'A+ Grade Accreditation');
 
--- B. USERS (Password will be overwritten by init_db.py)
+-- B. USERS (Core Roles + New Instructors + New Students)
 INSERT INTO users (user_id, name, email, password, nationality, age, phonenumber) VALUES 
--- Core Roles
+-- Core Roles (1-4)
 (1, 'Admin User', 'admin@demo.com', 'hashed_later', 'USA', 35, '123-456-7890'),
 (2, 'Instructor User', 'instructor@demo.com', 'hashed_later', 'UK', 40, '123-456-7890'),
 (3, 'Student User', 'student@demo.com', 'hashed_later', 'India', 21, '123-456-7890'),
 (4, 'Analyst User', 'analyst@demo.com', 'hashed_later', 'Canada', 29, '123-456-7890'),
 
--- NEW INSTRUCTORS
-(5, 'Dr. Sarah Connor', 'sarah@demo.com', 'hashed_later', 'USA', 42, '987-654-3210'),
-(6, 'Prof. Alan Grant', 'alan@demo.com', 'hashed_later', 'Australia', 50, '555-0199-8888'),
+-- 5 NEW INSTRUCTORS (IDs 10-14)
+(10, 'Dr. Emily Carter', 'emily@univ.edu', 'hashed_later', 'USA', 45, '555-0101'),
+(11, 'Prof. Raj Patel', 'raj@univ.edu', 'hashed_later', 'India', 52, '555-0102'),
+(12, 'Dr. Wei Chen', 'wei@univ.edu', 'hashed_later', 'China', 39, '555-0103'),
+(13, 'Sofia Rodriguez', 'sofia@univ.edu', 'hashed_later', 'Spain', 34, '555-0104'),
+(14, 'Hans Mueller', 'hans@univ.edu', 'hashed_later', 'Germany', 48, '555-0105'),
 
--- NEW STUDENTS
-(7, 'Alice Wonderland', 'alice@test.com', 'hashed_later', 'UK', 22, '111-222-3333'),
-(8, 'Bob Builder', 'bob@test.com', 'hashed_later', 'Canada', 24, '444-555-6666'),
-(9, 'Charlie Chaplin', 'charlie@test.com', 'hashed_later', 'India', 23, '777-888-9999');
+-- 10 NEW STUDENTS (IDs 20-29)
+(20, 'Liam Johnson', 'liam@student.com', 'hashed_later', 'Canada', 22, '555-0201'),
+(21, 'Emma Wilson', 'emma@student.com', 'hashed_later', 'Australia', 20, '555-0202'),
+(22, 'Noah Brown', 'noah@student.com', 'hashed_later', 'USA', 23, '555-0203'),
+(23, 'Olivia Martinez', 'olivia@student.com', 'hashed_later', 'Mexico', 21, '555-0204'),
+(24, 'William Anderson', 'will@student.com', 'hashed_later', 'UK', 25, '555-0205'),
+(25, 'Ava Thomas', 'ava@student.com', 'hashed_later', 'New Zealand', 19, '555-0206'),
+(26, 'James Jackson', 'james@student.com', 'hashed_later', 'USA', 24, '555-0207'),
+(27, 'Isabella White', 'bella@student.com', 'hashed_later', 'Italy', 22, '555-0208'),
+(28, 'Lucas Harris', 'lucas@student.com', 'hashed_later', 'Brazil', 26, '555-0209'),
+(29, 'Mia Martin', 'mia@student.com', 'hashed_later', 'France', 21, '555-0210');
 
 -- C. ROLES
 
 -- Admin
 INSERT INTO administrator (admin_id, user_id, salary) VALUES (1, 1, 80000.00);
 
--- Instructors
+-- Instructors (Linking Users 2, 10-14)
 INSERT INTO instructor (instructor_id, user_id, salary, experience, avg_rating) VALUES 
-(1, 2, 60000.00, 10, 4.5),  -- Original Instructor
-(2, 5, 75000.00, 8, 4.8),   -- Sarah (New)
-(3, 6, 82000.00, 15, 4.6);  -- Alan (New)
+(1, 2, 60000.00, 10, 4.5),  -- Original
+(2, 10, 95000.00, 15, 4.9), -- Dr. Emily
+(3, 11, 88000.00, 20, 4.7), -- Prof. Raj
+(4, 12, 72000.00, 8, 4.6),  -- Dr. Wei
+(5, 13, 68000.00, 5, 4.8),  -- Sofia
+(6, 14, 85000.00, 18, 4.4); -- Hans
 
 -- Analysts
 INSERT INTO data_analyst (analyst_id, salary, experience, user_id) VALUES (1, 55000.00, 5, 4);
 
--- Students
+-- Students (Linking Users 3, 20-29)
 INSERT INTO student (student_id, user_id) VALUES 
-(1, 3), -- Original Student
-(2, 7), -- Alice
-(3, 8), -- Bob
-(4, 9); -- Charlie
+(1, 3), (2, 20), (3, 21), (4, 22), (5, 23),
+(6, 24), (7, 25), (8, 26), (9, 27), (10, 28), (11, 29);
 
--- D. COURSES
+-- D. COURSES (Original + 5 New)
 
 INSERT INTO courses (course_id, course_name, creation_date, category, price, level, language, university_id) VALUES 
 (101, 'Generative AI Masterclass', '2026-01-10', 'AI', 0, 'Intermediate', 'English', 1),
-(102, 'Advanced Database Management', '2026-01-15', 'DBMS', 0, 'Advanced', 'English', 1),
+(102, 'Advanced DBMS', '2026-01-15', 'DBMS', 0, 'Advanced', 'English', 1),
 (103, 'Natural Language Processing', '2026-02-01', 'AI', 0, 'Advanced', 'English', 1),
--- New Courses
-(104, 'Deep Learning with PyTorch', '2026-02-10', 'AI', 0, 'Advanced', 'English', 1),
-(105, 'Computer Vision Basics', '2026-02-12', 'AI', 0, 'Beginner', 'English', 1),
-(106, 'Algorithms & Complexity', '2026-02-15', 'CS', 0, 'Intermediate', 'English', 1);
+-- 5 NEW COURSES
+(201, 'Cybersecurity Fundamentals', '2026-02-10', 'Security', 0, 'Beginner', 'English', 1),
+(202, 'Full Stack Web Dev (React)', '2026-02-12', 'Web Dev', 0, 'Intermediate', 'English', 1),
+(203, 'Financial Analysis 101', '2026-02-15', 'Finance', 0, 'Beginner', 'English', 1),
+(204, 'Cloud Computing with AWS', '2026-02-18', 'Cloud', 0, 'Advanced', 'English', 1),
+(205, 'Game Development with Unity', '2026-02-20', 'Game Dev', 0, 'Intermediate', 'English', 1);
 
--- E. TEACHES (Link Instructors to Courses)
+-- E. TEACHES (Linking Instructors to Courses)
 
 INSERT INTO teaches (instructor_id, course_id) VALUES 
-(1, 101), -- Original Instructor teaches GenAI
-(1, 102), -- Original Instructor teaches DBMS
-(2, 104), -- Sarah teaches Deep Learning
-(2, 105), -- Sarah teaches Computer Vision
-(3, 106), -- Alan teaches Algorithms
-(3, 103); -- Alan teaches NLP
+(1, 101), (1, 102), -- Original Instructor
+(2, 201), (2, 103), -- Dr. Emily (Security & AI)
+(3, 204),           -- Prof. Raj (Cloud)
+(4, 202),           -- Dr. Wei (Web Dev)
+(5, 205),           -- Sofia (Game Dev)
+(6, 203);           -- Hans (Finance)
 
--- F. ENROLLMENTS (Populate Charts)
+-- F. ENROLLMENTS (Populate Charts for Analyst)
 
 INSERT INTO enrolls_in (enrollment_id, course_id, user_id, enrollment_date, grade, completion_status, percent_completed) VALUES 
 -- Original Student (ID 3)
@@ -222,15 +232,14 @@ INSERT INTO enrolls_in (enrollment_id, course_id, user_id, enrollment_date, grad
 (2, 102, 3, '2026-02-05', 'B+', 'ongoing', 45),
 (3, 103, 3, '2026-02-08', 'A+', 'completed', 100),
 
--- Alice (ID 7) - Loves AI
-(4, 101, 7, '2026-02-10', NULL, 'ongoing', 10),
-(5, 104, 7, '2026-02-11', NULL, 'ongoing', 5),
-
--- Bob (ID 8) - Loves Coding
-(6, 106, 8, '2026-02-12', NULL, 'ongoing', 20),
-(7, 102, 8, '2026-02-12', NULL, 'ongoing', 15),
-
--- Charlie (ID 9) - The Overachiever
-(8, 104, 9, '2026-02-13', NULL, 'ongoing', 0),
-(9, 105, 9, '2026-02-13', NULL, 'ongoing', 0),
-(10, 106, 9, '2026-02-14', NULL, 'ongoing', 0);
+-- New Enrollments (Students 20-29)
+(10, 201, 20, '2026-02-10', NULL, 'ongoing', 15),  -- Liam in Cybersecurity
+(11, 202, 21, '2026-02-11', 'A-', 'completed', 100), -- Emma in Web Dev
+(12, 204, 22, '2026-02-12', NULL, 'ongoing', 30),  -- Noah in Cloud
+(13, 203, 23, '2026-02-13', 'B', 'ongoing', 60),   -- Olivia in Finance
+(14, 205, 24, '2026-02-14', NULL, 'ongoing', 10),  -- William in Game Dev
+(15, 101, 25, '2026-02-15', NULL, 'ongoing', 20),  -- Ava in GenAI
+(16, 102, 26, '2026-02-16', 'C+', 'ongoing', 40),  -- James in DBMS
+(17, 201, 27, '2026-02-17', 'A', 'completed', 100),-- Isabella in Cybersecurity
+(18, 202, 28, '2026-02-18', NULL, 'ongoing', 5),   -- Lucas in Web Dev
+(19, 205, 29, '2026-02-19', NULL, 'ongoing', 50);  -- Mia in Game Dev

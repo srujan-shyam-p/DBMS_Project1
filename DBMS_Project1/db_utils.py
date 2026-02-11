@@ -9,7 +9,6 @@ from datetime import datetime
 
 def get_user_by_email(session, email):
     """Fetch user basic details by email."""
-    # ALIAS: user_id -> id, name -> username
     query = text("SELECT user_id as id, name as username, email, password FROM users WHERE email = :email")
     return session.execute(query, {'email': email}).fetchone()
 
@@ -27,7 +26,6 @@ def check_email_exists(session, email):
 
 def create_user(session, name, email, hashed_password, phonenumber=None):
     """Insert into parent users table."""
-    # Get next ID
     uid = session.execute(text("SELECT COALESCE(MAX(user_id), 0) + 1 FROM users")).scalar()
     
     query = text("""
@@ -46,9 +44,9 @@ def assign_role(session, user_id, role):
         iid = session.execute(text("SELECT COALESCE(MAX(instructor_id), 0) + 1 FROM instructor")).scalar()
         session.execute(text("INSERT INTO instructor (instructor_id, user_id, salary, experience, avg_rating) VALUES (:iid, :uid, 0, 0, 0.0)"), 
                        {'iid': iid, 'uid': user_id})
-    # Add other roles as needed
 
-# ================= COURSES (General) =================
+
+# ================= COURSES (General)
 
 def get_all_published_courses(session):
     """Get all courses for the catalog."""
@@ -339,7 +337,6 @@ def get_all_instructors_details(session):
     """
     Fetch all instructors and the courses they teach.
     """
-    # FIX: Changed GROUP_CONCAT to STRING_AGG for PostgreSQL compatibility
     query = text("""
         SELECT u.user_id, u.name, u.email, i.experience,
                STRING_AGG(c.course_name, ', ') as courses_taught
@@ -356,7 +353,6 @@ def delete_enrollment(session, enrollment_id):
     """
     query = text("DELETE FROM enrolls_in WHERE enrollment_id = :eid")
     session.execute(query, {'eid': enrollment_id})
-# ... (Keep existing code) ...
 
 # ================= ADMIN HELPERS =================
 
