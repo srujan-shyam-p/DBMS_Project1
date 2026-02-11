@@ -1,36 +1,198 @@
 {% extends "base_dashboard.html" %}
-{% block title %}Analyst Insights{% endblock %}
+{% block title %}Analyst Dashboard{% endblock %}
 
 {% block content %}
-<div class="welcome-banner">
-    <h1>Platform Data Insights</h1>
-    <p>Generating statistics for course enrollments and user engagement.</p>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="stats-container">
-    <div class="stat-box">
-        <h3>Enrollment Trends</h3>
-        <p>Relational data pulled from PostgreSQL to track course popularity.</p>
+<div class="analyst-container">
+    
+    <div class="card profile-card mb-4">
+        <div class="card-header bg-dark text-white">
+            <h3>👤 Analyst Profile</h3>
+        </div>
+        <div class="card-body profile-grid">
+            <div class="profile-item">
+                <span class="label">Name:</span>
+                <span class="value">{{ profile.name }}</span>
+            </div>
+            <div class="profile-item">
+                <span class="label">ID:</span>
+                <span class="value">#{{ profile.user_id }}</span>
+            </div>
+            <div class="profile-item">
+                <span class="label">Email:</span>
+                <span class="value">{{ profile.email }}</span>
+            </div>
+            <div class="profile-item">
+                <span class="label">Experience:</span>
+                <span class="value">{{ profile.experience }} Years</span>
+            </div>
+            <div class="profile-item">
+                <span class="label">Nationality:</span>
+                <span class="value">{{ profile.nationality or 'N/A' }}</span>
+            </div>
+            <div class="profile-item">
+                <span class="label">Salary:</span>
+                <span class="value text-success">${{ profile.salary }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-purple text-white">
+            <h3>📊 Platform Analytics</h3>
+            <p style="margin:0; opacity: 0.8; font-size: 0.9em;">Analyze student distribution across different metrics</p>
+        </div>
+        
+        <div class="card-body">
+            <div class="chart-controls">
+                <button onclick="updateChart('age')" class="btn-chart active" id="btn-age">vs Student Age</button>
+                <button onclick="updateChart('instructor')" class="btn-chart" id="btn-instructor">vs Instructor</button>
+                <button onclick="updateChart('course')" class="btn-chart" id="btn-course">vs Courses</button>
+                <button onclick="updateChart('country')" class="btn-chart" id="btn-country">vs Country</button>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
-<h2>Enrollment Distribution</h2>
-<table class="styled-table">
-    <thead>
-        <tr>
-            <th>Course ID</th>
-            <th>Course Name</th>
-            <th>Total Enrolled</th>
-            <th>Completion Rate</th>
-        </tr>
-    </thead>
-    <tbody>
-        {# This section will be populated by your analyst route data #}
-        <tr>
-            <td colspan="4" style="text-align:center; padding:20px;">
-                <em>Report generation active. Use SQL aggregation to populate these rows.</em>
-            </td>
-        </tr>
-    </tbody>
-</table>
+<script>
+    // 1. Parse Data from Flask
+    const chartData = {{ charts | tojson }};
+    
+    // 2. Initialize Chart Context
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    let myChart;
+
+    // 3. Function to Render/Update Chart
+    function updateChart(type) {
+        // Update Buttons
+        document.querySelectorAll('.btn-chart').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + type).classList.add('active');
+
+        // Destroy old chart if exists
+        if (myChart) myChart.destroy();
+
+        // Determine Label & Color based on type
+        let labelText = "Number of Students";
+        let color = '#36a2eb'; // Default Blue
+
+        if (type === 'age') color = '#ff6384';      // Red
+        if (type === 'instructor') color = '#4bc0c0'; // Teal
+        if (type === 'course') color = '#ff9f40';     // Orange
+        if (type === 'country') color = '#9966ff';    // Purple
+
+        // Create New Chart
+        myChart = new Chart(ctx, {
+            type: 'bar', // Change to 'pie' or 'line' if preferred
+            data: {
+                labels: chartData[type].labels,
+                datasets: [{
+                    label: labelText,
+                    data: chartData[type].data,
+                    backgroundColor: color,
+                    borderColor: color,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Count' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Distribution by ' + type.charAt(0).toUpperCase() + type.slice(1),
+                        font: { size: 16 }
+                    }
+                }
+            }
+        });
+    }
+
+    // 4. Load Default Chart (Age)
+    updateChart('age');
+</script>
+
+<style>
+    /* Profile Styles */
+    .profile-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    .profile-item {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+    .profile-item .label {
+        font-size: 0.85em;
+        color: #666;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+    .profile-item .value {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #333;
+    }
+    .text-success { color: #28a745 !important; }
+
+    /* Chart Styles */
+    .bg-purple { background-color: #6f42c1; }
+    .bg-dark { background-color: #343a40; }
+    
+    .chart-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn-chart {
+        padding: 8px 20px;
+        border: 2px solid #6f42c1;
+        background: white;
+        color: #6f42c1;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s;
+    }
+    
+    .btn-chart:hover, .btn-chart.active {
+        background: #6f42c1;
+        color: white;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 400px; /* Fixed height for canvas */
+        width: 100%;
+    }
+    
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        background: white;
+    }
+    .card-header { padding: 15px 20px; }
+    .card-body { padding: 20px; }
+    .mb-4 { margin-bottom: 1.5rem; }
+</style>
 {% endblock %}

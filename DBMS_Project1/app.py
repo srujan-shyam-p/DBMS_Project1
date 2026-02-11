@@ -446,14 +446,44 @@ def admin_instructor_detail(user_id):
                          courses=courses, 
                          stats=stats)
 
-# analytics////////////////////////////
+# ================= ANALYST ROUTES =================
+
+# ... inside app.py ...
+
 @app.route('/analyst/dashboard')
 @login_required
 @role_required('analyst')
 def analyst_dashboard():
-    # Use db_utils to get platform enrollment statistics [cite: 39, 43]
-    stats = db_utils.get_platform_statistics(db.session)
-    return render_template('analyst.html', stats=stats)
+    user_id = session['user_id']
+    
+    # 1. Fetch Analyst Profile
+    profile = db_utils.get_analyst_profile(db.session, user_id)
+    
+    # 2. Fetch Analytics Data
+    raw_data = db_utils.get_analytics_data(db.session)
+    
+    # 3. Format Data for Chart.js (Lists of labels and values)
+    charts = {
+        'age': {
+            'labels': [str(row.age) for row in raw_data['age']],
+            'data': [row.count for row in raw_data['age']]
+        },
+        'country': {
+            'labels': [row.nationality or 'Unknown' for row in raw_data['country']],
+            'data': [row.count for row in raw_data['country']]
+        },
+        'course': {
+            'labels': [row.course_name for row in raw_data['course']],
+            'data': [row.count for row in raw_data['course']]
+        },
+        'instructor': {
+            'labels': [row.instructor_name for row in raw_data['instructor']],
+            'data': [row.student_count for row in raw_data['instructor']]
+        }
+    }
+    
+    return render_template('analyst.html', profile=profile, charts=charts)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

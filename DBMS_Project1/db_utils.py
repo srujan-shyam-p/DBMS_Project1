@@ -522,3 +522,70 @@ def get_course_student_map(session):
         student_map[row.course_id].append(row.name)
         
     return student_map
+
+# ... inside db_utils.py ...
+
+# ================= ANALYST DASHBOARD FUNCTIONS =================
+
+def get_analyst_profile(session, user_id):
+    """Fetch full profile details for the logged-in analyst."""
+    query = text("""
+        SELECT u.user_id, u.name, u.email, u.phonenumber, u.age, u.nationality,
+               da.salary, da.experience
+        FROM users u
+        JOIN data_analyst da ON u.user_id = da.user_id
+        WHERE u.user_id = :uid
+    """)
+    return session.execute(query, {'uid': user_id}).fetchone()
+
+def get_analytics_data(session):
+    """
+    Aggregates data for the 4 required plots:
+    1. Students vs Age
+    2. Students vs Country
+    3. Students vs Course
+    4. Students vs Instructor
+    """
+    data = {}
+
+    # 1. Students by Age
+    age_query = text("""
+        SELECT u.age, COUNT(s.student_id) as count
+        FROM student s
+        JOIN users u ON s.user_id = u.user_id
+        GROUP BY u.age
+        ORDER BY u.age
+    """)
+    data['age'] = session.execute(age_query).fetchall()
+
+    # 2. Students by Country (Nationality)
+    country_query = text("""
+        SELECT u.nationality, COUNT(s.student_id) as count
+        FROM student s
+        JOIN users u ON s.user_id = u.user_id
+        GROUP BY u.nationality
+    """)
+    data['country'] = session.execute(country_query).fetchall()
+
+    # 3. Students by Course (Enrollment Counts)
+    course_query = text("""
+        SELECT c.course_name, COUNT(e.enrollment_id) as count
+        FROM courses c
+        LEFT JOIN enrolls_in e ON c.course_id = e.course_id
+        GROUP BY c.course_name
+    """)
+    data['course'] = session.execute(course_query).fetchall()
+
+    # 4. Students by Instructor (Total students taught by each instructor)
+    instructor_query = text("""
+        SELECT u.name as instructor_name, COUNT(DISTINCT e.user_id) as student_count
+        FROM instructor i
+        JOIN users u ON i.user_id = u.user_id
+        JOIN teaches t ON i.instructor_id = t.instructor_id
+        JOIN courses c ON t.course_id = c.course_id
+        LEFT JOIN enrolls_in e ON c.course_id = e.course_id
+        GROUP BY u.name
+    """)
+    data['instructor'] = session.execute(instructor_query).fetchall()
+
+    return data
