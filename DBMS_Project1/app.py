@@ -332,7 +332,19 @@ def admin_analyst_detail(user_id):
         return redirect(url_for('admin_panel'))
 
     return render_template('admin_analyst_detail.html', analyst=analyst)
-# analytics
+# ... Add this with your other Admin routes ...
+
+@app.route('/admin/profile')
+@login_required
+@role_required('admin')
+def admin_profile():
+    # Fetch the currently logged-in admin's details
+    user_id = session['user_id']
+    admin = db_utils.get_admin_details(db.session, user_id)
+    
+    return render_template('admin_profile.html', admin=admin)
+
+# analytics////////////////////////////
 @app.route('/analyst/dashboard')
 @login_required
 @role_required('analyst')

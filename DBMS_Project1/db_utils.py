@@ -390,3 +390,23 @@ def get_analyst_by_id(session, user_id):
         WHERE u.user_id = :uid
     """)
     return session.execute(query, {'uid': user_id}).fetchone()
+def get_admin_details(session, user_id):
+    """Fetch full details for the logged-in administrator."""
+    query = text("""
+        SELECT u.user_id, u.name, u.email, u.phonenumber, u.age,
+               a.admin_id, a.salary
+        FROM users u
+        JOIN administrator a ON u.user_id = a.user_id
+        WHERE u.user_id = :uid
+    """)
+    return session.execute(query, {'uid': user_id}).fetchone()
+def get_admin_details(session, user_id):
+    """Fetch full details for the logged-in administrator."""
+    query = text("""
+        SELECT u.user_id, u.name, u.email, u.phonenumber, u.age,
+               a.admin_id, a.salary
+        FROM users u
+        JOIN administrator a ON u.user_id = a.user_id
+        WHERE u.user_id = :uid
+    """)
+    return session.execute(query, {'uid': user_id}).fetchone()

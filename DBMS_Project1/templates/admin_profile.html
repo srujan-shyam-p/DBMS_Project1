@@ -1,0 +1,52 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}My Profile (Admin){% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <a href="{{ url_for('admin_panel') }}" class="btn-secondary">&larr; Back to Dashboard</a>
+</div>
+
+<h1>My Profile</h1>
+
+<div class="card">
+    <div class="card-header bg-dark text-white">
+        <h3>Administrator Details</h3>
+    </div>
+    <div class="card-body">
+        <table class="detail-table">
+            <tr>
+                <th>Admin Name:</th>
+                <td>{{ admin.name }}</td>
+            </tr>
+            <tr>
+                <th>Admin ID:</th>
+                <td>{{ admin.admin_id }}</td>
+            </tr>
+            <tr>
+                <th>User ID:</th>
+                <td>{{ admin.user_id }}</td>
+            </tr>
+            <tr>
+                <th>Email:</th>
+                <td>{{ admin.email }}</td>
+            </tr>
+            <tr>
+                <th>Phone:</th>
+                <td>{{ admin.phonenumber or 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Salary:</th>
+                <td style="color: green; font-weight: bold;">${{ admin.salary }}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<style>
+    .card-header.bg-dark { background-color: #343a40; color: white; }
+    .detail-table { width: 100%; }
+    .detail-table th { text-align: left; padding: 15px; width: 200px; border-bottom: 1px solid #eee; }
+    .detail-table td { padding: 15px; border-bottom: 1px solid #eee; }
+</style>
+{% endblock %}
