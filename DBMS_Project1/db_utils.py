@@ -410,3 +410,115 @@ def get_admin_details(session, user_id):
         WHERE u.user_id = :uid
     """)
     return session.execute(query, {'uid': user_id}).fetchone()
+
+# ... inside db_utils.py ...
+
+# ================= ADMIN: MANAGE INSTRUCTORS =================
+
+def create_full_instructor(session, name, email, password, phone, age, salary, experience):
+    """
+    Creates a User record AND an Instructor record in one transaction.
+    """
+    # 1. Create User
+    uid = session.execute(text("SELECT COALESCE(MAX(user_id), 0) + 1 FROM users")).scalar()
+    user_query = text("""
+        INSERT INTO users (user_id, name, email, password, phonenumber, age) 
+        VALUES (:uid, :name, :email, :pwd, :phone, :age)
+    """)
+    session.execute(user_query, {
+        'uid': uid, 'name': name, 'email': email, 'pwd': password, 
+        'phone': phone, 'age': age
+    })
+
+    # 2. Create Instructor
+    iid = session.execute(text("SELECT COALESCE(MAX(instructor_id), 0) + 1 FROM instructor")).scalar()
+    inst_query = text("""
+        INSERT INTO instructor (instructor_id, user_id, salary, experience, avg_rating) 
+        VALUES (:iid, :uid, :sal, :exp, 0.0)
+    """)
+    session.execute(inst_query, {
+        'iid': iid, 'uid': uid, 'sal': salary, 'exp': experience
+    })
+
+def delete_instructor_cascade(session, user_id):
+    """
+    Deletes an instructor, their courses, and cleans up the user record.
+    """
+    # 1. Get Instructor ID
+    iid = session.execute(text("SELECT instructor_id FROM instructor WHERE user_id = :uid"), {'uid': user_id}).scalar()
+    
+    if iid:
+        # 2. Find all Course IDs taught by this instructor
+        courses = session.execute(text("SELECT course_id FROM teaches WHERE instructor_id = :iid"), {'iid': iid}).fetchall()
+        
+        for row in courses:
+            cid = row.course_id
+            # A. Delete Enrollments
+            session.execute(text("DELETE FROM enrolls_in WHERE course_id = :cid"), {'cid': cid})
+            # B. Delete Course Materials
+            session.execute(text("DELETE FROM course_material WHERE course_id = :cid"), {'cid': cid})
+            # C. Delete Modules (and Lectures via constraint or manual if needed)
+            # Note: Assuming Lectures cascade from Modules, or we strictly delete modules here
+            session.execute(text("DELETE FROM lectures WHERE module_id IN (SELECT module_id FROM module WHERE course_id = :cid)"), {'cid': cid})
+            session.execute(text("DELETE FROM module WHERE course_id = :cid"), {'cid': cid})
+            # D. Delete Teaches relationship
+            session.execute(text("DELETE FROM teaches WHERE course_id = :cid"), {'cid': cid})
+            # E. Delete Course
+            session.execute(text("DELETE FROM courses WHERE course_id = :cid"), {'cid': cid})
+
+        # 3. Delete Instructor Record
+        session.execute(text("DELETE FROM instructor WHERE instructor_id = :iid"), {'iid': iid})
+
+    # 4. Delete User Record
+    session.execute(text("DELETE FROM users WHERE user_id = :uid"), {'uid': user_id})
+    # ... inside db_utils.py ...
+
+def get_full_instructor_details(session, user_id):
+    """Fetch personal and professional details of an instructor."""
+    query = text("""
+        SELECT u.user_id, u.name, u.email, u.phonenumber, u.age,
+               i.salary, i.experience, i.avg_rating
+        FROM users u
+        JOIN instructor i ON u.user_id = i.user_id
+        WHERE u.user_id = :uid
+    """)
+    return session.execute(query, {'uid': user_id}).fetchone()
+# ... inside db_utils.py ...
+
+def get_full_course_catalog(session):
+    """
+    Fetch all courses with their Instructor's Name.
+    """
+    query = text("""
+        SELECT c.course_id as id, c.course_name as title, c.category, 
+               'No description available' as description, 
+               u.name as instructor_name
+        FROM courses c
+        LEFT JOIN teaches t ON c.course_id = t.course_id
+        LEFT JOIN instructor i ON t.instructor_id = i.instructor_id
+        LEFT JOIN users u ON i.user_id = u.user_id
+        ORDER BY c.course_id
+    """)
+    return session.execute(query).fetchall()
+
+def get_course_student_map(session):
+    """
+    Returns a dictionary mapping course_id to a list of student names.
+    Example: {101: ['Alice', 'Bob'], 102: ['Charlie']}
+    """
+    query = text("""
+        SELECT e.course_id, u.name
+        FROM enrolls_in e
+        JOIN users u ON e.user_id = u.user_id
+        ORDER BY u.name
+    """)
+    results = session.execute(query).fetchall()
+    
+    # Organize into a dictionary
+    student_map = {}
+    for row in results:
+        if row.course_id not in student_map:
+            student_map[row.course_id] = []
+        student_map[row.course_id].append(row.name)
+        
+    return student_map

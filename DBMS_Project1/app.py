@@ -118,18 +118,49 @@ def student_dashboard():
     stats = db_utils.get_student_stats(db.session, session['user_id'])
     return render_template('user.html', enrollments=enrollments, stats=stats)
 
+# @app.route('/student/catalog')
+# @login_required
+# def student_catalog():
+#     user_role = session.get('role')
+#     user_id = session.get('user_id')
+    
+#     if user_role == 'instructor':
+#         published_courses = db_utils.get_instructor_catalog(db.session, user_id)
+#     else:
+#         published_courses = db_utils.get_all_published_courses(db.session)
+        
+#     return render_template('courses.html', courses=published_courses)
+
+# ... inside app.py ...
+
+
+# Modified for the sake of adminpage
 @app.route('/student/catalog')
 @login_required
 def student_catalog():
     user_role = session.get('role')
     user_id = session.get('user_id')
     
+    # 1. Fetch Courses (Now includes Instructor Name)
+    # If instructor, they usually see their own, but for catalog viewing, 
+    # seeing all (with names) is fine.
     if user_role == 'instructor':
-        published_courses = db_utils.get_instructor_catalog(db.session, user_id)
+        # You can keep your specific instructor logic if preferred, 
+        # or use the generic one. Let's use the generic one for catalog view.
+        courses = db_utils.get_full_course_catalog(db.session)
     else:
-        published_courses = db_utils.get_all_published_courses(db.session)
+        courses = db_utils.get_full_course_catalog(db.session)
+    
+    # 2. If Admin, fetch the Student Lists
+    student_map = {}
+    if user_role == 'admin':
+        student_map = db_utils.get_course_student_map(db.session)
         
-    return render_template('courses.html', courses=published_courses)
+    return render_template('courses.html', 
+                         courses=courses, 
+                         student_map=student_map) # Pass map to template
+
+
 
 @app.route('/student/enroll/<int:course_id>', methods=['POST'])
 @login_required
@@ -343,6 +374,77 @@ def admin_profile():
     admin = db_utils.get_admin_details(db.session, user_id)
     
     return render_template('admin_profile.html', admin=admin)
+
+# ... inside app.py, under ADMIN ROUTES ...
+
+@app.route('/admin/instructor/add', methods=['POST'])
+@login_required
+@role_required('admin')
+def admin_add_instructor():
+    try:
+        # Get form data
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        phone = request.form.get('phone')
+        age = request.form.get('age')
+        salary = request.form.get('salary')
+        experience = request.form.get('experience')
+
+        # Check email
+        if db_utils.check_email_exists(db.session, email):
+            flash('Email already exists.', 'warning')
+            return redirect(url_for('admin_panel'))
+
+        # Hash password and save
+        hashed_pw = generate_password_hash(password)
+        db_utils.create_full_instructor(db.session, name, email, hashed_pw, phone, age, salary, experience)
+        db.session.commit()
+        
+        flash(f'Instructor {name} added successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error adding instructor: {str(e)}', 'danger')
+
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/instructor/delete/<int:user_id>', methods=['POST'])
+@login_required
+@role_required('admin')
+def admin_delete_instructor(user_id):
+    try:
+        db_utils.delete_instructor_cascade(db.session, user_id)
+        db.session.commit()
+        flash('Instructor and their courses deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting instructor: {str(e)}', 'danger')
+        
+    return redirect(url_for('admin_panel'))
+
+# ... inside app.py, near other Admin routes ...
+
+@app.route('/admin/instructor/<int:user_id>')
+@login_required
+@role_required('admin')
+def admin_instructor_detail(user_id):
+    # 1. Fetch Profile
+    instructor = db_utils.get_full_instructor_details(db.session, user_id)
+    
+    if not instructor:
+        flash('Instructor not found.', 'danger')
+        return redirect(url_for('admin_panel'))
+
+    # 2. Fetch their courses (Reusing existing function)
+    courses = db_utils.get_instructor_courses(db.session, user_id)
+    
+    # 3. Fetch their stats (Reusing existing function)
+    stats = db_utils.get_instructor_stats(db.session, user_id)
+
+    return render_template('admin_instructor_detail.html', 
+                         instructor=instructor, 
+                         courses=courses, 
+                         stats=stats)
 
 # analytics////////////////////////////
 @app.route('/analyst/dashboard')

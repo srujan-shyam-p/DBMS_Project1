@@ -1,3 +1,6 @@
+
+<!-- modified version -->
+
 {% extends "base_dashboard.html" %}
 {% block title %}Course Catalog{% endblock %}
 
@@ -13,20 +16,54 @@
         <div class="card-content">
             <span class="category-tag">{{ course.category }}</span>
             <h3>{{ course.title }}</h3>
+            
+            <p class="instructor-name" style="color: #666; font-size: 0.9em; margin-bottom: 10px;">
+                <strong>Instructor:</strong> {{ course.instructor_name or 'Not Assigned' }}
+            </p>
+            
             <p>{{ course.description }}</p>
+
+            {% if session['role'] == 'admin' %}
+            <div class="admin-student-list" style="margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">
+                <strong style="color: #007bff; font-size: 0.9em;">Enrolled Students:</strong>
+                <div style="font-size: 0.85em; color: #333; margin-top: 5px; max-height: 100px; overflow-y: auto;">
+                    {% if student_map[course.id] %}
+                        <ul style="padding-left: 20px; margin: 0;">
+                            {% for name in student_map[course.id] %}
+                            <li>{{ name }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <span style="color: #999; font-style: italic;">No enrollments yet.</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
+        
         <div class="card-footer">
             {% if session['role'] == 'student' %}
-            {# Students see the enrollment form #}
             <form action="{{ url_for('enroll_course', course_id=course.id) }}" method="POST">
                 <button type="submit" class="btn-enroll">Enroll Now</button>
             </form>
             {% elif session['role'] == 'instructor' %}
-            {# Instructors see a direct link to view/manage their course content #}
             <a href="{{ url_for('manage_course', course_id=course.id) }}" class="btn-view">View Course Content</a>
+            {% elif session['role'] == 'admin' %}
+            <button disabled class="btn-enroll" style="background-color: #6c757d; cursor: default;">Admin View</button>
             {% endif %}
         </div>
     </div>
     {% endfor %}
 </div>
+
+<style>
+    /* Optional: Style for the scrollbar in student list */
+    .admin-student-list div::-webkit-scrollbar {
+        width: 4px;
+    }
+    .admin-student-list div::-webkit-scrollbar-thumb {
+        background: #ccc; 
+        border-radius: 4px;
+    }
+</style>
 {% endblock %}
