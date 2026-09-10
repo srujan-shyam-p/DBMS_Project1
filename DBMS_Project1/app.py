@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Import Data Access Layer
+# Import Data Access 
 import db_utils
 
 app = Flask(__name__)
